@@ -2,7 +2,7 @@
 Modified version of Dock Master to be used entirely as a web application for basic usage. For more advanced usage, please use the original Dock Master application or the original developers new Dock Composer application at [https://apps.apple.com/au/app/dock-composer/id6751523907?mt=12](https://apps.apple.com/au/app/dock-composer/id6751523907?mt=12)
 
 ## Usage
-1. Access the web application at [https://maltob.github.io/dock-gen-web](https://maltob.github.io/dock-gen-web)
+1. Access the web application at [https://maltob.github.io/Dock-Gen-Web/](https://maltob.github.io/Dock-Gen-Web/)
 2. Add each of the items you want to your dock. The app should have a default list of common applications and folders.
 
 ## Adding your own apps
