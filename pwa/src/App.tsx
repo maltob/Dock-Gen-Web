@@ -5,9 +5,7 @@ import {
   Plus,
   Trash2,
   Box,
-  FileCode,
-  ExternalLink,
-  Folder
+  FileCode
 } from 'lucide-react';
 import { Dock, DockItem } from './lib/dock-engine';
 import { generatePackageZIP, downloadFile } from './lib/package-generator';
@@ -36,6 +34,8 @@ function App() {
   const [showImport, setShowImport] = useState(false);
   const [importText, setImportText] = useState('');
   const [importBasePath, setImportBasePath] = useState('/Applications');
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const suggestions = useMemo(() => getAllSuggestions(), []);
 
@@ -135,6 +135,72 @@ function App() {
     reader.readAsText(file);
   };
 
+  const getInitials = (label: string) => {
+    if (!label) return '?';
+    return label
+      .split(/[\s_-]+/)
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 3);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    if (!e.dataTransfer.types.includes('Files')) return;
+
+    const files = Array.from(e.dataTransfer.files);
+    const newItems: DockItem[] = [];
+
+    files.forEach(file => {
+      if (file.name.toLowerCase().endsWith('.app')) {
+        const label = file.name.replace(/\.app$/i, '');
+        newItems.push(new DockItem({
+          cfurlString: `/Applications/${file.name}`,
+          label: label,
+        }));
+      }
+    });
+
+    if (newItems.length > 0) {
+      setItems([...items, ...newItems]);
+      setActiveTab('items');
+    }
+  };
+
+  const handleSortStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleSortOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newItems = [...items];
+    const draggedItem = newItems[draggedIndex];
+    newItems.splice(draggedIndex, 1);
+    newItems.splice(index, 0, draggedItem);
+    setDraggedIndex(index);
+    setItems(newItems);
+  };
+
+  const handleSortEnd = () => {
+    setDraggedIndex(null);
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -186,7 +252,20 @@ function App() {
           </button>
         </aside>
 
-        <main className="editor">
+        <main
+          className="editor"
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          style={{ position: 'relative' }}
+        >
+          {isDragging && (
+            <div className="drop-overlay">
+              <Plus size={48} color="white" />
+              <p>Drop .app files here to add them to your dock</p>
+            </div>
+          )}
           {activeTab === 'items' ? (
             <div className="tab-pane animate-fade-in">
               <div className="section-header">
@@ -202,9 +281,16 @@ function App() {
                   </div>
                 )}
                 {items.map((item, index) => (
-                  <div key={index} className="item-card">
+                  <div
+                    key={index}
+                    className={`item-card ${draggedIndex === index ? 'dragging' : ''}`}
+                    draggable
+                    onDragStart={() => handleSortStart(index)}
+                    onDragOver={(e) => handleSortOver(e, index)}
+                    onDragEnd={handleSortEnd}
+                  >
                     <div className="item-icon">
-                      {item.tileType === 'directory-tile' ? <Folder /> : <ExternalLink />}
+                      {getInitials(item.label || '')}
                     </div>
                     <div className="item-details">
                       <input
@@ -343,9 +429,17 @@ Terminal.app
       <footer className="dock-preview-container">
         <div className={`dock-preview dock-${position}`}>
           {items.map((item, index) => (
-            <div key={index} className="preview-item" style={{ width: tileSize / 1.5, height: tileSize / 1.5 }}>
-              <div className="preview-icon">
-                {item.tileType === 'directory-tile' ? <Folder size={tileSize / 3} /> : <Box size={tileSize / 3} />}
+            <div
+              key={index}
+              className={`preview-item ${draggedIndex === index ? 'dragging' : ''}`}
+              style={{ width: tileSize / 1.5, height: tileSize / 1.5 }}
+              draggable
+              onDragStart={() => handleSortStart(index)}
+              onDragOver={(e) => handleSortOver(e, index)}
+              onDragEnd={handleSortEnd}
+            >
+              <div className="preview-icon" style={{ fontSize: tileSize / 4, fontWeight: 'bold' }}>
+                {getInitials(item.label || '')}
               </div>
               <div className="preview-label">{item.label || 'App'}</div>
             </div>
