@@ -1,5 +1,7 @@
 # Dock Gen Web
-Modified version of Dock Master to be used entirely as a web application for basic usage. For more advanced usage, please use the original Dock Master application or the original developers new Dock Composer application at [https://apps.apple.com/au/app/dock-composer/id6751523907?mt=12](https://apps.apple.com/au/app/dock-composer/id6751523907?mt=12)
+A web application for basic MacOS dock generation based on the Dock Master application.
+
+For more advanced usage, please use the original [Dock Master application](https://github.com/Error-freeIT/Dock-Master) or the original developers new Dock Composer application at [https://apps.apple.com/au/app/dock-composer/id6751523907?mt=12](https://apps.apple.com/au/app/dock-composer/id6751523907?mt=12)
 
 ## Usage
 1. Access the web application at [https://maltob.github.io/Dock-Gen-Web/](https://maltob.github.io/Dock-Gen-Web/)
