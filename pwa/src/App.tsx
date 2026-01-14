@@ -13,6 +13,8 @@ import { Dock, DockItem } from './lib/dock-engine';
 import { generatePackageZIP, downloadFile } from './lib/package-generator';
 import './App.css';
 
+import { Upload } from 'lucide-react';
+
 import {
   getAllSuggestions,
   saveCustomApps,
@@ -97,6 +99,42 @@ function App() {
     }
   };
 
+  const handleLoadConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const xml = event.target?.result as string;
+      try {
+        const loadedDock = Dock.fromXML(xml);
+
+        // Update states
+        setDisplayName(loadedDock.payloadDisplayName);
+        setOrganization(loadedDock.payloadOrganization || '');
+        setDescription(loadedDock.payloadDescription || '');
+        setScope(loadedDock.payloadScope);
+        setTileSize(loadedDock.dockTileSize);
+        setPosition(loadedDock.dockPosition);
+
+        // Collect all items from all categories
+        const allItems = [
+          ...loadedDock.staticApps,
+          ...loadedDock.persistentApps,
+          ...loadedDock.staticOthers,
+          ...loadedDock.persistentOthers
+        ];
+        setItems(allItems);
+
+        alert(`Loaded configuration: ${loadedDock.payloadDisplayName}`);
+      } catch (err) {
+        console.error('Failed to parse config:', err);
+        alert('Failed to parse the configuration file. Please ensure it is a valid .mobileconfig or .plist file.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -105,6 +143,16 @@ function App() {
           <h1>Dock Builder</h1>
         </div>
         <div className="actions">
+          <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+            <Upload size={18} />
+            <span>Config from File</span>
+            <input
+              type="file"
+              accept=".mobileconfig,.plist"
+              style={{ display: 'none' }}
+              onChange={handleLoadConfig}
+            />
+          </label>
           <button className="btn btn-secondary" onClick={() => setShowImport(true)}>
             <Plus size={18} />
             <span>Import Apps</span>

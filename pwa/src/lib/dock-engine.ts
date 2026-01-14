@@ -90,6 +90,21 @@ export class DockItem {
       'tile-data': tileData,
     };
   }
+
+  static fromXML(data: any): DockItem {
+    const tileData = data['tile-data'] || {};
+    const fileData = tileData['file-data'] || tileData['url'] || {};
+    const cfurlString = fileData['_CFURLString'] || tileData['home directory relative'] || '';
+
+    return new DockItem({
+      cfurlString,
+      arrangement: tileData['arrangement'],
+      showAs: tileData['showas'],
+      displayAs: tileData['displayas'],
+      label: tileData['label'],
+      removable: true, // Will be overridden by Dock.fromXML based on collection key
+    });
+  }
 }
 
 export interface DockOptions {
@@ -207,5 +222,49 @@ export class Dock {
     }
 
     return plist.build(obj as any);
+  }
+
+  static fromXML(xmlString: string): Dock {
+    const parsed = plist.parse(xmlString) as any;
+    let dockData = parsed;
+
+    // Check if it's a .mobileconfig (Configuration Profile)
+    if (parsed.PayloadContent && Array.isArray(parsed.PayloadContent)) {
+      const dockPayload = parsed.PayloadContent.find((p: any) => p.PayloadType === 'com.apple.dock');
+      if (dockPayload) {
+        dockData = dockPayload;
+      }
+    }
+
+    const options: DockOptions = {
+      payloadDisplayName: parsed.PayloadDisplayName || 'Imported Dock',
+      payloadOrganization: parsed.PayloadOrganization,
+      payloadDescription: parsed.PayloadDescription,
+      payloadScope: parsed.PayloadScope,
+      dockContentsImmutable: dockData['contents-immutable'],
+      dockStaticOnly: dockData['static-only'],
+      dockTileSize: dockData['tilesize'],
+      dockPosition: dockData['orientation'],
+    };
+
+    const dock = new Dock(options);
+    if (parsed.PayloadUUID) dock.payloadUUID = parsed.PayloadUUID;
+
+    const processItems = (key: string, removable: boolean) => {
+      if (dockData[key] && Array.isArray(dockData[key])) {
+        dockData[key].forEach((itemData: any) => {
+          const item = DockItem.fromXML(itemData);
+          item.removable = removable;
+          dock.addItem(item);
+        });
+      }
+    };
+
+    processItems('static-apps', false);
+    processItems('persistent-apps', true);
+    processItems('static-others', false);
+    processItems('persistent-others', true);
+
+    return dock;
   }
 }
