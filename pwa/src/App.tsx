@@ -157,7 +157,7 @@ function App() {
             <Plus size={18} />
             <span>Import Apps</span>
           </button>
-          <button className="btn btn-secondary" onClick={handleDownloadProfile}>
+          <button className="btn btn-primary" onClick={handleDownloadProfile}>
             <FileCode size={18} />
             <span>Profile</span>
           </button>
