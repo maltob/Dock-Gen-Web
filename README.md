@@ -6,8 +6,9 @@ For more advanced usage, please use the original [Dock Master application](https
 ## Usage
 1. Access the web application at [https://maltob.github.io/Dock-Gen-Web/](https://maltob.github.io/Dock-Gen-Web/)
 2. Add each of the items you want to your dock. The app should have a default list of common applications and folders.
+2.1. You can also drag and drop applications from /Applications into the dock to quickly add an app name.
 
-## Adding your own apps
+## Adding local apps to the list of suggestions
 1. You can run ls /Applications to get a list of all applications on your system.
 2. Copy the path of the application you want to add to your dock.
 3. Click the "Import Apps" button.
